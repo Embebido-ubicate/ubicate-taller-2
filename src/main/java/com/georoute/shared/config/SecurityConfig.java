@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -21,7 +20,6 @@ import java.util.Arrays;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -32,37 +30,26 @@ public class SecurityConfig {
         return http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(authRequest ->
-                        authRequest
-                                // Endpoints públicos de autenticación
-                                .requestMatchers("/api/auth/register").permitAll()
-                                .requestMatchers("/api/auth/login").permitAll()
+                .authorizeHttpRequests(auth -> auth
 
-                                // Endpoints públicos de documentación
-                                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                                .requestMatchers("/swagger-ui.html", "/swagger-resources/**", "/webjars/**").permitAll()
+                        // ========== ENDPOINTS PÚBLICOS ==========
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/public/**").permitAll() // Pasajeros
+                        .requestMatchers("/api/company/routes/test").permitAll() // Test
+                        .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                                // Endpoints públicos de sistema
-                                .requestMatchers("/actuator/health").permitAll()
-                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // ========== ENDPOINTS DE EMPRESAS ==========
+                        .requestMatchers("/api/company/**").hasAnyRole("COMPANY_ADMIN", "SYSTEM_ADMIN")
 
-                                // Endpoints específicos por rol para sistema de transporte
-                                .requestMatchers("/api/admin/**").hasRole("SYSTEM_ADMIN")
-                                .requestMatchers("/api/company/**").hasAnyRole("SYSTEM_ADMIN", "COMPANY_ADMIN")
-                                .requestMatchers("/api/driver/**").hasAnyRole("DRIVER", "COMPANY_ADMIN", "SYSTEM_ADMIN")
+                        // ========== ENDPOINTS DE ADMIN SISTEMA ==========
+                        .requestMatchers("/api/admin/**").hasRole("SYSTEM_ADMIN")
 
-                                // Endpoints de usuario autenticado
-                                .requestMatchers("/api/auth/profile").authenticated()
-                                .requestMatchers("/api/auth/location").authenticated()
-                                .requestMatchers("/api/auth/status").authenticated()
-                                .requestMatchers("/api/auth/validate").authenticated()
-
-                                // Todos los demás requieren autenticación
-                                .anyRequest().authenticated()
+                        // Todo lo demás requiere autenticación
+                        .anyRequest().authenticated()
                 )
-                .sessionManagement(sessionManager ->
-                        sessionManager.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authProvider)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
@@ -71,41 +58,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-
-        // Orígenes permitidos
-        configuration.setAllowedOriginPatterns(Arrays.asList(
-                "http://localhost:*",
-                "http://127.0.0.1:*",
-                "https://*.georoute.com", // Dominio de tu aplicación
-                "https://georoute.com"
-        ));
-
-        // Métodos HTTP permitidos
-        configuration.setAllowedMethods(Arrays.asList(
-                "GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"
-        ));
-
-        // Headers permitidos
-        configuration.setAllowedHeaders(Arrays.asList(
-                "Authorization",
-                "Content-Type",
-                "X-Requested-With",
-                "Accept",
-                "Origin",
-                "Access-Control-Request-Method",
-                "Access-Control-Request-Headers",
-                "X-User-Location"
-        ));
-
-        // Headers expuestos
-        configuration.setExposedHeaders(Arrays.asList(
-                "Access-Control-Allow-Origin",
-                "Access-Control-Allow-Credentials",
-                "Authorization"
-        ));
-
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

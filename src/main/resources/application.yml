@@ -1,53 +1,37 @@
-server:
-  port: 8080
-  servlet:
-    context-path: /
-
 spring:
+  application:
+    name: georoute
+
+  # Base de datos simple
   datasource:
-    url: jdbc:mysql://localhost:3306/georoute_db?createDatabaseIfNotExist=true&serverTimezone=UTC
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:123456789}
+    url: jdbc:mysql://localhost:3306/georoute?createDatabaseIfNotExist=true
+    username: root
+    password: 123456789
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+  # JPA simple
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: false
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
-        format_sql: true
+    show-sql: true
+    open-in-view: false
 
-  jackson:
-    property-naming-strategy: SNAKE_CASE
-    default-property-inclusion: NON_NULL
-
-# JWT Configuration
+# JWT simple
 jwt:
-  secret: ${JWT_SECRET:dGVzdGluZ19zZWNyZXRfa2V5X2Zvcl9nZW9yb3V0ZV9hcHBfMjAyNQ==}
-  expiration: ${JWT_EXPIRATION:86400000} # 24 hours in milliseconds
+  secret: MiClaveSecretaParaGeoRoute2024
+  expiration: 86400000
 
-# Logging
+# Google Maps Configuration
+google:
+  maps:
+    api-key: ${GOOGLE_MAPS_API_KEY:AIza...tu_api_key_aqui}
+
+# Server
+server:
+  port: 8080
+
+# Logging mínimo
 logging:
   level:
-    com.georoute: DEBUG
-    org.springframework.security: INFO
-    root: INFO
-
-# Actuator for health checks
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
-  endpoint:
-    health:
-      show-details: always
-
-# Información de la aplicación
-info:
-  app:
-    name: '@project.name@'
-    description: '@project.description@'
-    version: '@project.version@'
+    com.georoute: INFO
+    org.springframework.security: WARN
