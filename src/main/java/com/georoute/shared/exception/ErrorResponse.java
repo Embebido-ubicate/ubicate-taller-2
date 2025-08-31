@@ -1,4 +1,4 @@
-package com.georoute.feature.user.dto;
+package com.georoute.shared.exception;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;

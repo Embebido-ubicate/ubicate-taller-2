@@ -1,4 +1,4 @@
-package com.georoute.feature.user.dto;
+package com.georoute.shared.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
