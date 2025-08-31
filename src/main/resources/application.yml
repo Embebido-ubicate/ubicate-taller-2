@@ -18,7 +18,7 @@ spring:
 
 # JWT simple
 jwt:
-  secret: MiClaveSecretaParaGeoRoute2024
+  secret: bXlfc3VwZXJfc2VjdXJlX2tleV9nZW9yb3V0ZTIwMjQxMjM0NQ==
   expiration: 86400000
 
 # Google Maps Configuration
